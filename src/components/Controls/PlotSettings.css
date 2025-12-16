@@ -1,0 +1,181 @@
+.plot-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.plot-settings__section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.plot-settings__section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary);
+  margin: 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.plot-settings__section-title svg {
+  opacity: 0.7;
+}
+
+/* Range Slider Styles */
+.range-slider {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.range-slider__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.range-slider__label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.range-slider__values {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 12px;
+  color: var(--accent-primary);
+  background: var(--accent-bg);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.range-slider__controls {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.range-slider__input-group {
+  display: grid;
+  grid-template-columns: 40px 1fr 70px;
+  gap: 10px;
+  align-items: center;
+}
+
+.range-slider__input-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.range-slider__slider {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  background: var(--slider-track);
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.range-slider__slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  background: var(--accent-primary);
+  border-radius: 50%;
+  cursor: grab;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.range-slider__slider::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+  box-shadow: 0 0 0 4px var(--accent-glow);
+}
+
+.range-slider__slider::-webkit-slider-thumb:active {
+  cursor: grabbing;
+  transform: scale(1.1);
+}
+
+.range-slider__slider::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  background: var(--accent-primary);
+  border: none;
+  border-radius: 50%;
+  cursor: grab;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.range-slider__number {
+  width: 100%;
+  padding: 6px 8px;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 12px;
+  color: var(--text-primary);
+  background: var(--input-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  text-align: center;
+  transition: border-color 0.2s ease;
+}
+
+.range-slider__number:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+}
+
+/* Select Styles */
+.plot-select {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.plot-select__label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.plot-select__dropdown {
+  padding: 10px 12px;
+  font-size: 13px;
+  color: var(--text-primary);
+  background: var(--input-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 36px;
+}
+
+.plot-select__dropdown:hover {
+  border-color: var(--border-hover);
+}
+
+.plot-select__dropdown:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+}
+
+.plot-select__dropdown option {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  padding: 8px;
+}
+

@@ -1,0 +1,79 @@
+.function-input {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.function-input__label {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'SF Mono', Consolas, monospace;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  letter-spacing: 0.02em;
+}
+
+.function-input__wrapper {
+  position: relative;
+  border-radius: 8px;
+  background: var(--input-bg);
+  border: 2px solid var(--border-color);
+  transition: all 0.2s ease;
+}
+
+.function-input__wrapper:hover {
+  border-color: var(--border-hover);
+}
+
+.function-input__wrapper.focused {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.function-input__wrapper.error {
+  border-color: var(--error-color);
+}
+
+.function-input__wrapper.error.focused {
+  box-shadow: 0 0 0 3px var(--error-glow);
+}
+
+.function-input__field {
+  width: 100%;
+  padding: 12px 14px;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'SF Mono', Consolas, monospace;
+  font-size: 15px;
+  font-weight: 400;
+  color: var(--text-primary);
+  background: transparent;
+  border: none;
+  outline: none;
+  letter-spacing: 0.03em;
+  box-sizing: border-box;
+}
+
+.function-input__field::placeholder {
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+
+.function-input__error {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--error-color);
+  animation: shake 0.3s ease;
+}
+
+.function-input__help {
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+
