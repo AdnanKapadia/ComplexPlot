@@ -87,8 +87,19 @@ export function Surface3D({
   width = 700, 
   height = 600 
 }: Surface3DProps) {
-  const { x, y, z, colors } = data;
-  const { heightBy, colorBy, expression } = config;
+  const { x, y, z: rawZ, colors } = data;
+  const { heightBy, colorBy, expression, zMin, zMax } = config;
+
+  // Apply z-axis clamping to the data
+  const z = (zMin !== undefined || zMax !== undefined)
+    ? rawZ.map(row => row.map(val => {
+        if (!isFinite(val)) return val;
+        let clamped = val;
+        if (zMin !== undefined && val < zMin) clamped = zMin;
+        if (zMax !== undefined && val > zMax) clamped = zMax;
+        return clamped;
+      }))
+    : rawZ;
 
   // Validate data
   if (!x.length || !y.length || !z.length || !colors.length) {
@@ -215,6 +226,11 @@ export function Surface3D({
         zerolinecolor: '#666',
         backgroundcolor: '#0f0f1a',
         showspikes: false,
+        // Apply z-axis range if specified (data is already clamped)
+        ...(zMin !== undefined && zMax !== undefined ? {
+          range: [zMin, zMax],
+          autorange: false,
+        } : {}),
       },
       bgcolor: '#0f0f1a',
       camera: {

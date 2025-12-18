@@ -279,7 +279,40 @@ body {
   border-top: 1px dashed var(--border-subtle);
 }
 
+/* Split view for integral visualization */
+.app-main.split {
+  flex-direction: row;
+  gap: 16px;
+}
+
+.plot-container.split-left {
+  flex: 1;
+  min-width: 0;
+}
+
+.plot-container.split-right {
+  flex: 1;
+  min-width: 0;
+  background: var(--bg-secondary);
+}
+
+.plot-container.split-right::before {
+  background-image: none;
+}
+
 /* Responsive */
+@media (max-width: 1200px) {
+  .app-main.split {
+    flex-direction: column;
+  }
+  
+  .plot-container.split-left,
+  .plot-container.split-right {
+    flex: none;
+    height: 50%;
+  }
+}
+
 @media (max-width: 900px) {
   :root {
     --sidebar-width: 300px;

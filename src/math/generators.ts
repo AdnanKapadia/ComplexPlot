@@ -8,6 +8,8 @@ import type {
   ComplexPoint,
   ContourConfig,
   ContourData,
+  ContourEntry,
+  ContourIntegralData,
   DomainColoringConfig,
   Surface3DConfig,
 } from '../types';
@@ -112,6 +114,164 @@ export function generateContourPoints(config: ContourConfig): ContourData[] {
         contour.tSteps
       ),
     }));
+}
+
+/**
+ * Complex number multiplication
+ */
+function complexMultiply(a: ComplexPoint, b: ComplexPoint): ComplexPoint {
+  return {
+    re: a.re * b.re - a.im * b.im,
+    im: a.re * b.im + a.im * b.re,
+  };
+}
+
+/**
+ * Complex number addition
+ */
+function complexAdd(a: ComplexPoint, b: ComplexPoint): ComplexPoint {
+  return {
+    re: a.re + b.re,
+    im: a.im + b.im,
+  };
+}
+
+/**
+ * Scale a complex number by a real scalar
+ */
+function complexScale(a: ComplexPoint, scalar: number): ComplexPoint {
+  return {
+    re: a.re * scalar,
+    im: a.im * scalar,
+  };
+}
+
+/**
+ * Compute contour integral data for visualization
+ * Calculates γ'(t) via numerical differentiation and accumulates ∫f(γ(t))γ'(t)dt
+ * @param contour - The contour entry to compute integral for
+ * @returns ContourIntegralData with integrand vectors and running sum, or null if invalid
+ */
+export function computeContourIntegral(contour: ContourEntry): ContourIntegralData | null {
+  const { expression, transformFunction, tMin, tMax, tSteps, id, color } = contour;
+
+  // Need both a contour and a function to integrate
+  if (!expression || expression.trim() === '') {
+    return null;
+  }
+
+  // If no transform function, default to f(z) = 1 (integrates to arc length in complex sense)
+  const fExpr = transformFunction && transformFunction.trim() !== '' ? transformFunction : '1';
+
+  try {
+    const compiledGamma = compile(expression);
+    const compiledF = compile(fExpr);
+
+    const dt = (tMax - tMin) / Math.max(tSteps - 1, 1);
+    const h = dt * 0.01; // Small step for numerical derivative
+
+    const tValues: number[] = [];
+    const contourPoints: ComplexPoint[] = [];
+    const integrandVectors: ComplexPoint[] = [];
+    const runningSum: ComplexPoint[] = [];
+
+    let currentSum: ComplexPoint = { re: 0, im: 0 };
+
+    // Evaluate γ(t) at a given t value
+    const evalGamma = (t: number): ComplexPoint | null => {
+      try {
+        const result = compiledGamma.evaluate({ t, ...mathConstants });
+        return toComplexPoint(result);
+      } catch {
+        return null;
+      }
+    };
+
+    // Evaluate f(z) at a given complex point
+    const evalF = (z: ComplexPoint): ComplexPoint | null => {
+      try {
+        const result = compiledF.evaluate({ z: toMathComplex(z), ...mathConstants });
+        return toComplexPoint(result);
+      } catch {
+        return null;
+      }
+    };
+
+    for (let step = 0; step < tSteps; step++) {
+      const t = tMin + step * dt;
+
+      // Evaluate γ(t)
+      const gamma = evalGamma(t);
+      if (!gamma || !isFinite(gamma.re) || !isFinite(gamma.im)) {
+        continue;
+      }
+
+      // Compute γ'(t) using central difference: (γ(t+h) - γ(t-h)) / (2h)
+      const gammaPlusH = evalGamma(t + h);
+      const gammaMinusH = evalGamma(t - h);
+      
+      let gammaPrime: ComplexPoint;
+      if (gammaPlusH && gammaMinusH && 
+          isFinite(gammaPlusH.re) && isFinite(gammaPlusH.im) &&
+          isFinite(gammaMinusH.re) && isFinite(gammaMinusH.im)) {
+        gammaPrime = {
+          re: (gammaPlusH.re - gammaMinusH.re) / (2 * h),
+          im: (gammaPlusH.im - gammaMinusH.im) / (2 * h),
+        };
+      } else {
+        // Fallback to forward difference at boundaries
+        const gammaNext = evalGamma(t + h);
+        if (gammaNext && isFinite(gammaNext.re) && isFinite(gammaNext.im)) {
+          gammaPrime = {
+            re: (gammaNext.re - gamma.re) / h,
+            im: (gammaNext.im - gamma.im) / h,
+          };
+        } else {
+          continue;
+        }
+      }
+
+      // Evaluate f(γ(t))
+      const fValue = evalF(gamma);
+      if (!fValue || !isFinite(fValue.re) || !isFinite(fValue.im)) {
+        continue;
+      }
+
+      // Compute integrand: f(γ(t)) · γ'(t)
+      const integrand = complexMultiply(fValue, gammaPrime);
+      if (!isFinite(integrand.re) || !isFinite(integrand.im)) {
+        continue;
+      }
+
+      // Accumulate: sum += integrand * dt
+      const contribution = complexScale(integrand, dt);
+      currentSum = complexAdd(currentSum, contribution);
+
+      tValues.push(t);
+      contourPoints.push(gamma);
+      integrandVectors.push(integrand);
+      runningSum.push({ ...currentSum });
+    }
+
+    if (tValues.length === 0) {
+      return null;
+    }
+
+    return {
+      id,
+      color,
+      tValues,
+      contourPoints,
+      integrandVectors,
+      runningSum,
+      finalValue: { ...currentSum },
+      expression,
+      transformFunction: fExpr,
+    };
+  } catch (error) {
+    console.warn(`Failed to compute contour integral for "${expression}":`, error);
+    return null;
+  }
 }
 
 /**

@@ -8,11 +8,13 @@ import type {
   MathEngine,
   ContourConfig,
   ContourData,
+  ContourEntry,
+  ContourIntegralData,
   DomainColoringConfig,
   Surface3DConfig,
 } from '../types';
 import { parseExpression } from './parser';
-import { generateContourPoints, generateDomainColoringData, generateSurface3DData } from './generators';
+import { generateContourPoints, generateDomainColoringData, generateSurface3DData, computeContourIntegral } from './generators';
 
 // Re-export utilities for external use
 export { parseExpression, parseAndCompile, isValidExpression } from './parser';
@@ -26,7 +28,7 @@ export {
   argument,
   getColorValue,
 } from './evaluator';
-export { generateContourPoints, generateDomainColoringData, generateSurface3DData } from './generators';
+export { generateContourPoints, generateDomainColoringData, generateSurface3DData, computeContourIntegral } from './generators';
 
 /**
  * Create a MathEngine instance that implements the MathEngine interface
@@ -46,6 +48,14 @@ function createMathEngine(): MathEngine {
      */
     evaluateContour(config: ContourConfig): ContourData[] {
       return generateContourPoints(config);
+    },
+
+    /**
+     * Compute contour integral data for visualization
+     * Calculates integrand vectors f(γ(t))·γ'(t) and running sum
+     */
+    evaluateContourIntegral(contour: ContourEntry): ContourIntegralData | null {
+      return computeContourIntegral(contour);
     },
 
     /**

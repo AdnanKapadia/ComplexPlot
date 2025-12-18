@@ -466,3 +466,51 @@
   text-align: center;
 }
 
+/* Contour integral visualization button */
+.contour-row__integral-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  margin-top: 6px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--border-color);
+}
+
+.contour-row__integral {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 500;
+  color: #bd93f9;
+  background: transparent;
+  border: 1px solid #bd93f9;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.contour-row__integral:hover {
+  background: rgba(189, 147, 249, 0.15);
+}
+
+.contour-row__integral.active {
+  background: #bd93f9;
+  color: var(--bg-primary);
+}
+
+.contour-row__integral.active:hover {
+  background: #a070e0;
+  border-color: #a070e0;
+}
+
+.contour-row__integral-hint {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 10px;
+  color: #bd93f9;
+  opacity: 0.8;
+}
+

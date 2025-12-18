@@ -68,6 +68,8 @@ const defaultSurface3D: Surface3DConfig = {
   resolution: 64,
   heightBy: 'modulus',
   colorBy: 'argument',
+  zMin: undefined,
+  zMax: undefined,
 };
 
 const defaultPlotState: PlotState = {
@@ -92,6 +94,7 @@ export interface UsePlotStateReturn {
   setXRange: (xMin: number, xMax: number) => void;
   setYRange: (yMin: number, yMax: number) => void;
   setTRange: (tMin: number, tMax: number) => void;
+  setZRange: (zMin: number | undefined, zMax: number | undefined) => void;
   setResolution: (resolution: number) => void;
   setColorBy: (colorBy: ColorMapping) => void;
   setHeightBy: (heightBy: ColorMapping) => void;
@@ -226,6 +229,14 @@ export function usePlotState(initialState?: Partial<PlotState>): UsePlotStateRet
     // No-op: each contour has its own t-range now
   }, []);
 
+  // Z-range for 3D surface clamping (to tame poles)
+  const setZRange = useCallback((zMin: number | undefined, zMax: number | undefined) => {
+    setState((prev) => ({
+      ...prev,
+      surface3d: { ...prev.surface3d, zMin, zMax },
+    }));
+  }, []);
+
   const setResolution = useCallback((resolution: number) => {
     setState((prev) => {
       switch (prev.mode) {
@@ -295,6 +306,7 @@ export function usePlotState(initialState?: Partial<PlotState>): UsePlotStateRet
     setXRange,
     setYRange,
     setTRange,
+    setZRange,
     setResolution,
     setColorBy,
     setHeightBy,

@@ -179,3 +179,70 @@
   padding: 8px;
 }
 
+/* Z-axis clamp controls */
+.plot-settings__hint {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin: -8px 0 4px 0;
+  font-style: italic;
+}
+
+.z-clamp-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.z-clamp-input {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.z-clamp-input__label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.z-clamp-input__row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.z-clamp-input__checkbox {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent-primary);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.z-clamp-input__number {
+  flex: 1;
+  padding: 8px 10px;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 13px;
+  color: var(--text-primary);
+  background: var(--input-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  transition: border-color 0.2s ease, opacity 0.2s ease;
+}
+
+.z-clamp-input__number:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+}
+
+.z-clamp-input__number:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.z-clamp-input__number::placeholder {
+  color: var(--text-muted);
+  font-style: italic;
+}
+

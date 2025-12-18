@@ -13,6 +13,10 @@ export interface ContourInputProps {
   onToggleAnimationAll: () => void;
   animatingContourIds: Set<string>;
   onToggleContourAnimation: (id: string) => void;
+  /** ID of contour currently showing integral visualization (only one at a time) */
+  showingIntegralId: string | null;
+  /** Toggle integral visualization for a specific contour */
+  onToggleShowIntegral: (id: string) => void;
 }
 
 // Color palette for contours
@@ -35,6 +39,8 @@ interface ContourRowProps {
   canRemove: boolean;
   isAnimating: boolean;
   onToggleAnimation: () => void;
+  isShowingIntegral: boolean;
+  onToggleShowIntegral: () => void;
 }
 
 const ContourRow: React.FC<ContourRowProps> = ({
@@ -45,6 +51,8 @@ const ContourRow: React.FC<ContourRowProps> = ({
   canRemove,
   isAnimating,
   onToggleAnimation,
+  isShowingIntegral,
+  onToggleShowIntegral,
 }) => {
   const [localExpr, setLocalExpr] = useState(contour.expression);
   const [localTransform, setLocalTransform] = useState(contour.transformFunction || '');
@@ -356,6 +364,23 @@ const ContourRow: React.FC<ContourRowProps> = ({
             />
             <span className="contour-row__speed-value">{contour.animationSpeed ?? 5}</span>
           </div>
+          <div className="contour-row__integral-row">
+            <button
+              className={`contour-row__integral ${isShowingIntegral ? 'active' : ''}`}
+              onClick={onToggleShowIntegral}
+              title={isShowingIntegral ? 'Hide integral visualization' : 'Show contour integral ∮f(z)dz'}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M12 3c-1.5 0-2.5 1-3 2s-1 3-1 5c0 2 .5 5 1 7s1.5 4 3 4c1.5 0 2.5-1 3-2s1-3 1-5c0-2-.5-5-1-7s-1.5-4-3-4z" />
+              </svg>
+              {isShowingIntegral ? 'Hide ∮' : 'Show ∮'}
+            </button>
+            {isShowingIntegral && (
+              <span className="contour-row__integral-hint">
+                Visualizing ∮f(z)dz
+              </span>
+            )}
+          </div>
         </div>
       )}
     </div>
@@ -371,6 +396,8 @@ export const ContourInput: React.FC<ContourInputProps> = ({
   onToggleAnimationAll,
   animatingContourIds,
   onToggleContourAnimation,
+  showingIntegralId,
+  onToggleShowIntegral,
 }) => {
   return (
     <div className="contour-input">
@@ -415,6 +442,8 @@ export const ContourInput: React.FC<ContourInputProps> = ({
             canRemove={contours.length > 1}
             isAnimating={animatingContourIds.has(contour.id)}
             onToggleAnimation={() => onToggleContourAnimation(contour.id)}
+            isShowingIntegral={showingIntegralId === contour.id}
+            onToggleShowIntegral={() => onToggleShowIntegral(contour.id)}
           />
         ))}
       </div>

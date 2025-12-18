@@ -19,6 +19,7 @@ export interface ContourEntry {
   tMax: number;            // parameter range end
   tSteps: number;          // number of evaluation points
   animationSpeed: number;  // animation speed (1-10, higher = faster)
+  showIntegral?: boolean;  // whether to show integral visualization for this contour
 }
 
 /** Configuration for the contour plot mode */
@@ -35,6 +36,19 @@ export interface ContourData {
   tMin: number;
   tMax: number;
   animationSpeed: number;
+}
+
+/** Data for contour integral visualization */
+export interface ContourIntegralData {
+  id: string;
+  color: string;
+  tValues: number[];              // parameter values at each step
+  contourPoints: ComplexPoint[];  // γ(t) values at each step
+  integrandVectors: ComplexPoint[]; // f(γ(t))·γ'(t) at each t
+  runningSum: ComplexPoint[];     // cumulative sum path (partial integrals)
+  finalValue: ComplexPoint;       // ∮f(z)dz - the total integral
+  expression: string;             // display expression for the contour
+  transformFunction: string;      // f(z) being integrated
 }
 
 export interface DomainColoringConfig {
@@ -56,6 +70,8 @@ export interface Surface3DConfig {
   resolution: number;
   heightBy: ColorMapping;
   colorBy: ColorMapping;
+  zMin?: number;           // Optional z-axis clamp (min)
+  zMax?: number;           // Optional z-axis clamp (max)
 }
 
 export interface PlotState {
@@ -69,6 +85,7 @@ export interface PlotState {
 export interface MathEngine {
   parseExpression(expr: string, variable: string): MathNode | null;
   evaluateContour(config: ContourConfig): ContourData[];
+  evaluateContourIntegral(contour: ContourEntry): ContourIntegralData | null;
   evaluateDomainColoring(config: DomainColoringConfig): {
     z: number[][];
     colors: number[][];

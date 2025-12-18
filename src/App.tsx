@@ -1,10 +1,11 @@
-import { useMemo, useState, useCallback } from 'react';
+import { useMemo, useState, useCallback, useRef, useEffect } from 'react';
 import './App.css';
 import { usePlotState } from './hooks/usePlotState';
 import { FunctionInput, PlotSettings, ModeSelector, ContourInput } from './components/Controls';
-import { DomainColoring, ContourPlot } from './components/Plot2D';
+import { DomainColoring, ContourPlot, IntegralVisualization } from './components/Plot2D';
 import { Surface3D } from './components/Plot3D';
 import { mathEngine } from './math';
+import type { ContourIntegralData } from './types';
 
 function App() {
   const {
@@ -14,6 +15,7 @@ function App() {
     setXRange,
     setYRange,
     setTRange,
+    setZRange,
     setResolution,
     setColorBy,
     setHeightBy,
@@ -28,6 +30,12 @@ function App() {
   // Animation state for contour mode
   const [isAnimatingAll, setIsAnimatingAll] = useState(false);
   const [animatingContourIds, setAnimatingContourIds] = useState<Set<string>>(new Set());
+  
+  // Integral visualization state
+  const [showingIntegralId, setShowingIntegralId] = useState<string | null>(null);
+  const [animationProgress, setAnimationProgress] = useState(0);
+  const animationFrameRef = useRef<number | null>(null);
+  const lastTimeRef = useRef<number>(0);
   
   const toggleAnimationAll = useCallback(() => {
     setIsAnimatingAll(prev => !prev);
@@ -51,12 +59,90 @@ function App() {
     setIsAnimatingAll(false);
   }, []);
 
+  const toggleShowIntegral = useCallback((id: string) => {
+    setShowingIntegralId(prev => {
+      if (prev === id) {
+        return null;
+      }
+      // Reset animation progress when starting new integral view
+      setAnimationProgress(0);
+      // Auto-start animation for the integral
+      setAnimatingContourIds(new Set([id]));
+      setIsAnimatingAll(false);
+      return id;
+    });
+  }, []);
+
   // Stop animation when switching modes
   const handleModeChange = useCallback((mode: typeof state.mode) => {
     setIsAnimatingAll(false);
     setAnimatingContourIds(new Set());
+    setShowingIntegralId(null);
     setMode(mode);
   }, [setMode]);
+  
+  // Get the contour entry for integral visualization
+  const integralContour = useMemo(() => {
+    if (!showingIntegralId) return null;
+    return state.contour.contours.find(c => c.id === showingIntegralId) || null;
+  }, [showingIntegralId, state.contour.contours]);
+  
+  // Compute integral data
+  const integralData: ContourIntegralData | null = useMemo(() => {
+    if (!integralContour) return null;
+    return mathEngine.evaluateContourIntegral(integralContour);
+  }, [integralContour]);
+  
+  // Animation loop for integral visualization
+  const isIntegralAnimating = showingIntegralId !== null && 
+    (isAnimatingAll || animatingContourIds.has(showingIntegralId));
+  
+  useEffect(() => {
+    if (!isIntegralAnimating || !integralContour) {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = null;
+      }
+      return;
+    }
+    
+    const speed = integralContour.animationSpeed ?? 5;
+    const tRange = integralContour.tMax - integralContour.tMin;
+    
+    const animate = (timestamp: number) => {
+      if (!lastTimeRef.current) {
+        lastTimeRef.current = timestamp;
+      }
+      
+      const elapsed = timestamp - lastTimeRef.current;
+      
+      // Update at ~60fps
+      if (elapsed >= 16) {
+        lastTimeRef.current = timestamp;
+        
+        // Progress increment based on speed and tRange
+        // Speed 1 = 0.02 t-units/frame, speed 10 = 0.2 t-units/frame
+        const tIncrement = 0.02 * speed;
+        const progressIncrement = tIncrement / tRange;
+        
+        setAnimationProgress(prev => {
+          const next = prev + progressIncrement;
+          return next >= 1 ? 0 : next; // Loop back to start
+        });
+      }
+      
+      animationFrameRef.current = requestAnimationFrame(animate);
+    };
+    
+    lastTimeRef.current = 0;
+    animationFrameRef.current = requestAnimationFrame(animate);
+    
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, [isIntegralAnimating, integralContour]);
 
   // Get values based on current mode
   const xMin = 'xMin' in currentConfig ? currentConfig.xMin : -2;
@@ -66,6 +152,8 @@ function App() {
   const resolution = 'resolution' in currentConfig ? currentConfig.resolution : 256;
   const colorBy = 'colorBy' in currentConfig ? currentConfig.colorBy : 'argument';
   const heightBy = state.surface3d.heightBy;
+  const zMin = state.surface3d.zMin;
+  const zMax = state.surface3d.zMax;
 
   // Generate plot data based on current mode
   const contourData = useMemo(() => {
@@ -149,6 +237,8 @@ function App() {
           onToggleAnimationAll={toggleAnimationAll}
           animatingContourIds={animatingContourIds}
           onToggleContourAnimation={toggleContourAnimation}
+          showingIntegralId={showingIntegralId}
+          onToggleShowIntegral={toggleShowIntegral}
         />
       );
     }
@@ -163,6 +253,9 @@ function App() {
       />
     );
   };
+  
+  // Whether to show split view for integral visualization
+  const showIntegralSplit = state.mode === 'contour' && integralData !== null;
 
   return (
     <div className="app">
@@ -206,6 +299,8 @@ function App() {
                 yMax={yMax}
                 tMin={0}
                 tMax={2 * Math.PI}
+                zMin={zMin}
+                zMax={zMax}
                 resolution={resolution}
                 tSteps={200}
                 colorBy={colorBy}
@@ -213,6 +308,7 @@ function App() {
                 onXRangeChange={setXRange}
                 onYRangeChange={setYRange}
                 onTRangeChange={setTRange}
+                onZRangeChange={setZRange}
                 onResolutionChange={setResolution}
                 onColorByChange={setColorBy}
                 onHeightByChange={setHeightBy}
@@ -222,10 +318,19 @@ function App() {
         </aside>
 
         {/* Main Plot Area */}
-        <main className="app-main">
-          <div className="plot-container">
+        <main className={`app-main ${showIntegralSplit ? 'split' : ''}`}>
+          <div className={`plot-container ${showIntegralSplit ? 'split-left' : ''}`}>
             {renderPlot()}
           </div>
+          {showIntegralSplit && integralData && (
+            <div className="plot-container split-right">
+              <IntegralVisualization
+                integralData={integralData}
+                animationProgress={animationProgress}
+                isAnimating={isIntegralAnimating}
+              />
+            </div>
+          )}
         </main>
       </div>
     </div>

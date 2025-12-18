@@ -11,6 +11,9 @@ export interface PlotSettingsProps {
   yMax: number;
   tMin: number;
   tMax: number;
+  // Z-axis clamp for 3D
+  zMin?: number;
+  zMax?: number;
   // Resolution
   resolution: number;
   tSteps: number;
@@ -21,6 +24,7 @@ export interface PlotSettingsProps {
   onXRangeChange: (xMin: number, xMax: number) => void;
   onYRangeChange: (yMin: number, yMax: number) => void;
   onTRangeChange: (tMin: number, tMax: number) => void;
+  onZRangeChange: (zMin: number | undefined, zMax: number | undefined) => void;
   onResolutionChange: (resolution: number) => void;
   onColorByChange: (colorBy: ColorMapping) => void;
   onHeightByChange: (heightBy: ColorMapping) => void;
@@ -153,6 +157,8 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({
   yMax,
   tMin,
   tMax,
+  zMin,
+  zMax,
   resolution,
   tSteps,
   colorBy,
@@ -160,6 +166,7 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({
   onXRangeChange,
   onYRangeChange,
   onTRangeChange,
+  onZRangeChange,
   onResolutionChange,
   onColorByChange,
   onHeightByChange,
@@ -207,6 +214,68 @@ export const PlotSettings: React.FC<PlotSettingsProps> = ({
           </>
         )}
       </div>
+
+      {is3D && (
+        <div className="plot-settings__section">
+          <h3 className="plot-settings__section-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M12 2v20M2 12h20" />
+              <path d="M17 7l-5 5-5-5" />
+              <path d="M7 17l5-5 5 5" />
+            </svg>
+            Z-Axis Clamp
+          </h3>
+          <p className="plot-settings__hint">Limit Z range to tame poles</p>
+          <div className="z-clamp-controls">
+            <div className="z-clamp-input">
+              <label className="z-clamp-input__label">Min Z</label>
+              <div className="z-clamp-input__row">
+                <input
+                  type="checkbox"
+                  checked={zMin !== undefined}
+                  onChange={(e) => onZRangeChange(e.target.checked ? -10 : undefined, zMax)}
+                  className="z-clamp-input__checkbox"
+                />
+                <input
+                  type="number"
+                  className="z-clamp-input__number"
+                  value={zMin ?? ''}
+                  placeholder="auto"
+                  step={0.5}
+                  disabled={zMin === undefined}
+                  onChange={(e) => {
+                    const val = parseFloat(e.target.value);
+                    onZRangeChange(isNaN(val) ? undefined : val, zMax);
+                  }}
+                />
+              </div>
+            </div>
+            <div className="z-clamp-input">
+              <label className="z-clamp-input__label">Max Z</label>
+              <div className="z-clamp-input__row">
+                <input
+                  type="checkbox"
+                  checked={zMax !== undefined}
+                  onChange={(e) => onZRangeChange(zMin, e.target.checked ? 10 : undefined)}
+                  className="z-clamp-input__checkbox"
+                />
+                <input
+                  type="number"
+                  className="z-clamp-input__number"
+                  value={zMax ?? ''}
+                  placeholder="auto"
+                  step={0.5}
+                  disabled={zMax === undefined}
+                  onChange={(e) => {
+                    const val = parseFloat(e.target.value);
+                    onZRangeChange(zMin, isNaN(val) ? undefined : val);
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="plot-settings__section">
         <h3 className="plot-settings__section-title">
